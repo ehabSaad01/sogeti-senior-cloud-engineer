@@ -1,0 +1,34 @@
+name: Repo CI
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify structure
+        run: |
+          test -f README.md
+          test -f SECURITY.md
+          test -d infra
+          test -d scripts
+          test -d docs
+          test -d .github/workflows
+
+      - name: ShellCheck scripts
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y shellcheck
+          if compgen -G "scripts/*.sh" > /dev/null; then
+            shellcheck --severity=style scripts/*.sh
+          else
+            echo "No shell scripts yet. Skipping."
+          fi
