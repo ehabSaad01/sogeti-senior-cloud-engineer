@@ -1,3 +1,5 @@
+![Repo CI](https://github.com/ehabSaad01/sogeti-senior-cloud-engineer/actions/workflows/ci.yml/badge.svg)
+
 # Sogeti Senior Cloud Engineer — Portfolio
 
 ## Purpose
