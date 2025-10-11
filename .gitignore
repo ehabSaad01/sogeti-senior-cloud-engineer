@@ -1,0 +1,32 @@
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs and temp
+*.log
+*.tmp
+
+# Env and secrets (never commit secrets)
+.env
+*.key
+*.pem
+*.pfx
+*.cer
+
+# Terraform and IaC
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+*.tfplan
+crash.log
+*.backup
+
+# Caches and vendors
+__pycache__/
+node_modules/
+
+# Misc
+*.bak
+*.swp
