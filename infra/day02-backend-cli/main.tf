@@ -10,9 +10,10 @@ terraform {
 
 provider "azurerm" {
   features {}
+  resource_provider_registrations = "none"
 }
 
-# Create a simple resource within the existing RG to match current RBAC (RG-level Contributor)
+# Workload within RG scope (matches current RBAC)
 resource "azurerm_user_assigned_identity" "tfcli" {
   name                = "uai-day02-tfcli"
   resource_group_name = "rg-day02-backend-cli"
