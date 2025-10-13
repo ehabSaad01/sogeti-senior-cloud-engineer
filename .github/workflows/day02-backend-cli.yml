@@ -25,16 +25,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "Check required env from repo variables"
-          test -n "${{ vars.AZURE_CLIENT_ID }}" || { echo "AZURE_CLIENT_ID missing"; exit 1; }
-          test -n "${{ vars.AZURE_TENANT_ID }}" || { echo "AZURE_TENANT_ID missing"; exit 1; }
-          test -n "${{ vars.AZURE_SUBSCRIPTION_ID }}" || { echo "AZURE_SUBSCRIPTION_ID missing"; exit 1; }
-          echo "Who am I in Azure?"
-          az account show --query "{sub:id,tenant:tenantId,cloud:name}" -o table
-          echo "Check RG, Storage, and Container (management plane)"
-          az group show --name rg-day02-backend-cli -o table
-          az storage account show --name stday02backendcliweu --resource-group rg-day02-backend-cli -o table
-          az storage container-rm list --resource-group rg-day02-backend-cli --storage-account stday02backendcliweu --query "[?name=='tfstate-cli']" -o table
+          echo "AZ CLI version:"; az version
+          echo "Account:"; az account show -o table
+          echo "RG:"; az group show --name rg-day02-backend-cli -o table
+          echo "Storage:"; az storage account show --name stday02backendcliweu --resource-group rg-day02-backend-cli -o table
+          echo "Container (data plane, OAuth):"
+          az storage container list --account-name stday02backendcliweu --auth-mode login --query "[?name=='tfstate-cli']" -o table
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
