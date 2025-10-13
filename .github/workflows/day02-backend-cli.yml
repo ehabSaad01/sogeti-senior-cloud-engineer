@@ -8,17 +8,11 @@ permissions:
   id-token: write
 
 jobs:
-  init_and_diagnose:
+  init_plan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Compute expected OIDC subject
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "EXPECTED_SUBJECT=repo:${GITHUB_REPOSITORY}:ref:${GITHUB_REF}"
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
@@ -32,9 +26,25 @@ jobs:
 
       - name: Terraform init (azurerm backend)
         env:
-          TF_LOG: INFO
           ARM_USE_OIDC: true
           ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         run: terraform -chdir=infra/day02-backend-cli init -reconfigure -upgrade -input=false
+
+      - name: Terraform validate
+        run: terraform -chdir=infra/day02-backend-cli validate
+
+      - name: Terraform plan
+        env:
+          ARM_USE_OIDC: true
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        run: terraform -chdir=infra/day02-backend-cli plan -out=tfplan.bin -input=false
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-day02
+          path: infra/day02-backend-cli/tfplan.bin
