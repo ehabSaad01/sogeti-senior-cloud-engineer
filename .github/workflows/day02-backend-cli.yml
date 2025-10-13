@@ -8,7 +8,7 @@ permissions:
   id-token: write
 
 jobs:
-  terraform-init:
+  init_and_diagnose:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,13 +21,29 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Sanity
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Check required env from repo variables"
+          test -n "${{ vars.AZURE_CLIENT_ID }}" || { echo "AZURE_CLIENT_ID missing"; exit 1; }
+          test -n "${{ vars.AZURE_TENANT_ID }}" || { echo "AZURE_TENANT_ID missing"; exit 1; }
+          test -n "${{ vars.AZURE_SUBSCRIPTION_ID }}" || { echo "AZURE_SUBSCRIPTION_ID missing"; exit 1; }
+          echo "Who am I in Azure?"
+          az account show --query "{sub:id,tenant:tenantId,cloud:name}" -o table
+          echo "Check RG, Storage, and Container (management plane)"
+          az group show --name rg-day02-backend-cli -o table
+          az storage account show --name stday02backendcliweu --resource-group rg-day02-backend-cli -o table
+          az storage container-rm list --resource-group rg-day02-backend-cli --storage-account stday02backendcliweu --query "[?name=='tfstate-cli']" -o table
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform init (azurerm backend)
         env:
+          TF_LOG: INFO
           ARM_USE_OIDC: true
           ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-        run: terraform -chdir=infra/day02-backend-cli init -upgrade
+        run: terraform -chdir=infra/day02-backend-cli init -reconfigure -upgrade -input=false
