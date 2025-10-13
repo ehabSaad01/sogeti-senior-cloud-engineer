@@ -2,6 +2,13 @@ name: Day02 Backend CLI
 
 on:
   workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Run terraform apply?'
+        required: true
+        default: 'no'
+        type: choice
+        options: ['no','yes']
 
 permissions:
   contents: read
@@ -48,3 +55,12 @@ jobs:
         with:
           name: tfplan-day02
           path: infra/day02-backend-cli/tfplan.bin
+
+      - name: Terraform apply (conditional)
+        if: ${{ inputs.apply == 'yes' }}
+        env:
+          ARM_USE_OIDC: true
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        run: terraform -chdir=infra/day02-backend-cli apply -input=false -auto-approve tfplan.bin
