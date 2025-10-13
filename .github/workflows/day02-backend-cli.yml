@@ -14,23 +14,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Compute expected OIDC subject
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "EXPECTED_SUBJECT=repo:${GITHUB_REPOSITORY}:ref:${GITHUB_REF}"
+
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Sanity
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "AZ CLI version:"; az version
-          echo "Account:"; az account show -o table
-          echo "RG:"; az group show --name rg-day02-backend-cli -o table
-          echo "Storage:"; az storage account show --name stday02backendcliweu --resource-group rg-day02-backend-cli -o table
-          echo "Container (data plane, OAuth):"
-          az storage container list --account-name stday02backendcliweu --auth-mode login --query "[?name=='tfstate-cli']" -o table
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
