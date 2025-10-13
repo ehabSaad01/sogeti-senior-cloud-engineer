@@ -12,9 +12,11 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "tfcli" {
-  name     = "rg-day02-tfcli"
-  location = "westeurope"
+# Create a simple resource within the existing RG to match current RBAC (RG-level Contributor)
+resource "azurerm_user_assigned_identity" "tfcli" {
+  name                = "uai-day02-tfcli"
+  resource_group_name = "rg-day02-backend-cli"
+  location            = "westeurope"
   tags = {
     project = "sogeti-ce"
     origin  = "terraform"
