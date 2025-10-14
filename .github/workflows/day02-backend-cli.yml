@@ -1,21 +1,20 @@
-cat > ~/clouddrive/sogeti-senior-cloud-engineer-remote/.github/workflows/day02-backend-cli.yml <<'YAML'
 name: Day02 Backend CLI
 
 on:
   workflow_dispatch:
     inputs:
       offline:
-        description: 'Run offline (no Azure login, local backend)?'
+        description: "Run offline (no Azure login, local backend)?"
         required: true
-        default: 'yes'
+        default: "no"
         type: choice
-        options: ['no','yes']
+        options: ["no","yes"]
       apply:
-        description: 'Run terraform apply?'
+        description: "Run terraform apply?"
         required: true
-        default: 'no'
+        default: "no"
         type: choice
-        options: ['no','yes']
+        options: ["no","yes"]
 
 permissions:
   contents: read
@@ -36,10 +35,23 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Key Vault read test
+        if: ${{ inputs.offline == 'no' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          az keyvault secret show --vault-name kvday02backendcliweu --name app-conn-string --query "value" -o tsv >/dev/null
+          echo "KeyVault access OK"
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform init
+        env:
+          ARM_USE_OIDC: true
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         run: |
           if [ "${{ inputs.offline }}" = "yes" ]; then
             terraform -chdir=infra/day02-backend-cli init -backend=false -input=false
@@ -51,6 +63,11 @@ jobs:
         run: terraform -chdir=infra/day02-backend-cli validate
 
       - name: Terraform plan
+        env:
+          ARM_USE_OIDC: true
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         run: |
           if [ "${{ inputs.offline }}" = "yes" ]; then
             terraform -chdir=infra/day02-backend-cli plan -out=tfplan.bin -input=false -lock=false -refresh=false
@@ -72,5 +89,3 @@ jobs:
           ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         run: terraform -chdir=infra/day02-backend-cli apply -input=false -auto-approve tfplan.bin
-YAML
-
