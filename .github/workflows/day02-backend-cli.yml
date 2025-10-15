@@ -1,91 +1,42 @@
-name: Day02 Backend CLI
+name: day02-backend-cli
 
 on:
   workflow_dispatch:
-    inputs:
-      offline:
-        description: "Run offline (no Azure login, local backend)?"
-        required: true
-        default: "no"
-        type: choice
-        options: ["no","yes"]
-      apply:
-        description: "Run terraform apply?"
-        required: true
-        default: "no"
-        type: choice
-        options: ["no","yes"]
+  push:
+    branches: [ main ]
 
 permissions:
-  contents: read
   id-token: write
+  contents: read
 
 jobs:
-  run:
+  terraform:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Azure login (OIDC)
-        if: ${{ inputs.offline == 'no' }}
+      - name: Azure login via OIDC
         uses: azure/login@v2
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Key Vault read test
-        if: ${{ inputs.offline == 'no' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          az keyvault secret show --vault-name kvday02backendcliweu --name app-conn-string --query "value" -o tsv >/dev/null
-          echo "KeyVault access OK"
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:  ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform init
-        env:
-          ARM_USE_OIDC: true
-          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-        run: |
-          if [ "${{ inputs.offline }}" = "yes" ]; then
-            terraform -chdir=infra/day02-backend-cli init -backend=false -input=false
-          else
-            terraform -chdir=infra/day02-backend-cli init -reconfigure -upgrade -input=false
-          fi
-
-      - name: Terraform validate
-        run: terraform -chdir=infra/day02-backend-cli validate
-
-      - name: Terraform plan
-        env:
-          ARM_USE_OIDC: true
-          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-        run: |
-          if [ "${{ inputs.offline }}" = "yes" ]; then
-            terraform -chdir=infra/day02-backend-cli plan -out=tfplan.bin -input=false -lock=false -refresh=false
-          else
-            terraform -chdir=infra/day02-backend-cli plan -out=tfplan.bin -input=false
-          fi
-
-      - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
         with:
-          name: tfplan-day02
-          path: infra/day02-backend-cli/tfplan.bin
+          terraform_version: 1.9.5
 
-      - name: Terraform apply (conditional)
-        if: ${{ inputs.apply == 'yes' && inputs.offline == 'no' }}
-        env:
-          ARM_USE_OIDC: true
-          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-        run: terraform -chdir=infra/day02-backend-cli apply -input=false -auto-approve tfplan.bin
+      - name: Terraform Init
+        run: terraform -chdir=infra/day02-backend-cli init -input=false
+
+      - name: Terraform Validate
+        run: terraform -chdir=infra/day02-backend-cli validate -no-color
+
+      - name: Terraform Plan
+        run: terraform -chdir=infra/day02-backend-cli plan -no-color -input=false -out=tfplan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform -chdir=infra/day02-backend-cli apply -auto-approve -input=false tfplan
