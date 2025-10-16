@@ -25,3 +25,6 @@ This repository demonstrates practical skills for a Senior Cloud Engineer role t
 
 ## Security
 A SECURITY.md file will describe vulnerability disclosure and baseline hardening.
+
+## Day 02
+- [Issues & Fixes](docs/day02/day02-issues-and-fixes.md)
