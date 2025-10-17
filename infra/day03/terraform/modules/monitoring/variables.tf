@@ -1,5 +1,4 @@
 // variables.tf — monitoring module inputs
-// Defines inputs for creating a Log Analytics Workspace in a reusable way.
 
 variable "resource_group_name" {
   description = "Target Resource Group for the Log Analytics workspace."
@@ -17,7 +16,7 @@ variable "workspace_name" {
 }
 
 variable "retention_in_days" {
-  description = "Data retention period to control cost."
+  description = "Data retention period to control cost (PerGB2018 requires >= 30)."
   type        = number
   default     = 30
 }
