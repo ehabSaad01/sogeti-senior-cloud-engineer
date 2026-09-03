@@ -1,30 +1,34 @@
-![Repo CI](https://github.com/ehabSaad01/sogeti-senior-cloud-engineer/actions/workflows/ci.yml/badge.svg)
+[![Repo CI](https://github.com/ehabSaad01/azure-cloud-engineering-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/ehabSaad01/azure-cloud-engineering-portfolio/actions/workflows/ci.yml)
 
-# Sogeti Senior Cloud Engineer — Portfolio
+# Azure Cloud Engineering Portfolio
 
 ## Purpose
-This repository demonstrates practical skills for a Senior Cloud Engineer role targeting Sogeti (Capgemini). It focuses on clarity, security-by-default, and reproducible execution.
+This repository demonstrates practical Azure Cloud Engineering skills with a focus on infrastructure, security, networking, automation, and resilient cloud architecture.
 
 ## Repository Structure
-.
-├─ infra/                # Infrastructure as Code (Bicep/Terraform later)
-├─ scripts/              # Azure CLI and PowerShell scripts
-├─ docs/                 # Technical notes and diagrams
-└─ .github/workflows/    # GitHub Actions (CI/CD)
+
+├─ infra/                 # Infrastructure as Code (Bicep/Terraform)
+├─ scripts/               # Azure CLI and PowerShell scripts
+├─ docs/                  # Technical notes and diagrams
+└─ .github/workflows/     # GitHub Actions (CI/CD)
 
 ## Conventions
+
 - Prefer least privilege and RBAC-first.
 - Avoid shared keys when a managed identity or service principal fits.
 - Use explicit, long CLI options for readability.
 - Include pre-checks and post-validation where applicable.
 
 ## Getting Started
-- scripts/ will contain runnable Azure CLI and PowerShell with inline comments.
-- infra/ will hold IaC definitions to provision and configure resources.
-- docs/ will include technical explanations, diagrams, and runbooks.
+
+- `scripts/` contains runnable Azure CLI and PowerShell scripts with inline comments.
+- `infra/` contains IaC definitions to provision and configure Azure resources.
+- `docs/` contains technical explanations, diagrams, and runbooks.
 
 ## Security
-A SECURITY.md file will describe vulnerability disclosure and baseline hardening.
 
-## Day 02
+See `SECURITY.md` for vulnerability disclosure and baseline hardening guidance.
+
+## Project Documentation
+
 - [Issues & Fixes](docs/day02/day02-issues-and-fixes.md)
